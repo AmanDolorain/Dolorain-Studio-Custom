@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Provision H3 on the official Vast.ai ComfyUI template.
+# Set up MiniMax H3 on the official Vast.ai ComfyUI template.
 # Default: all known H3 models. Optional: ref2v or manager-only.
 set -Eeuo pipefail
 trap 'printf "Setup stopped at line %s. Re-run the script after fixing the error.\n" "$LINENO" >&2' ERR
