@@ -18,22 +18,16 @@ if [[ $# -eq 0 ]]; then
   [[ "$port" =~ ^[0-9]{1,5}$ ]] && (( 10#$port >= 1 && 10#$port <= 65535 )) ||
     die 'H3_COMFY_PORT must be between 1 and 65535.'
   install -D -m 0755 -- "$0" /opt/vast-h3/setup.sh
-  cat > /etc/supervisor/conf.d/vast-h3-setup.conf <<EOF
-[program:vast-h3-setup]
-command=/bin/bash /opt/vast-h3/setup.sh --after-ready $profile $port
-autostart=true
-autorestart=false
-startsecs=0
-stdout_logfile=/var/log/vast-h3-setup.log
-redirect_stderr=true
-EOF
-  printf 'H3 setup scheduled after ComfyUI responds. Log: /var/log/vast-h3-setup.log\n'
+  nohup /bin/bash /opt/vast-h3/setup.sh --after-ready "$profile" "$port" \
+    </dev/null >>/var/log/vast-h3-setup.log 2>&1 &
+  printf 'H3 setup will run after ComfyUI responds. Log: /var/log/vast-h3-setup.log\n'
   exit 0
 fi
 
 if [[ "$1" == --after-ready ]]; then
   profile=$2
   api="http://127.0.0.1:$3/system_stats"
+  printf 'Waiting for ComfyUI at %s before starting H3 profile %s.\n' "$api" "$profile"
   for attempt in {1..120}; do
     if curl -fsS --max-time 2 "$api" >/dev/null 2>&1; then
       exec /bin/bash "$0" "$profile"
